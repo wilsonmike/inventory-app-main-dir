@@ -68,7 +68,37 @@ const registerUser = asyncHandler(async (req, res) => {
 
 // Login User
 const loginUser = asyncHandler(async (req, res) => {
-    res.send("Login User");
+    const { email, password } = req.body;
+    // Validate Login Request
+    if (!email || !password) {
+        res.status(400);
+        throw new Error("Please add an email and password");
+    }
+
+    // Check if user is in DB
+    const user = await User.findOne({ email });
+    if (!user) {
+        res.status(400);
+        throw new Error("User not found, please sign up");
+    }
+
+    // Validate password
+    const passwordIsCorrect = await bcrypt.compare(password, user.password);
+
+    if (user && passwordIsCorrect) {
+        const { _id, name, email, photo, phone, bio } = user;
+        res.status(200).json({
+            _id,
+            name,
+            email,
+            photo,
+            phone,
+            bio,
+        });
+    } else {
+        res.status(400);
+        throw new Error("Invalid credentials");
+    }
 });
 
 
